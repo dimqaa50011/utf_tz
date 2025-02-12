@@ -49,7 +49,10 @@ EXTENSIONS = [
     "rest_framework",
 ]
 
-PROJECT_APPS = []
+PROJECT_APPS = [
+    "model_utils.apps.ModelUtilsConfig",
+    "products.apps.ProductsConfig",
+]
 
 INSTALLED_APPS = DEFAULT_INSTALLED_APPS + EXTENSIONS + PROJECT_APPS
 
