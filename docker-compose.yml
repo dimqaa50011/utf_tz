@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:14
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "8897:5432"
+    networks:
+      - tz
+    healthcheck:
+      # test: [ "CMD", "pg_isready", "-q", "-U", "${DB_USER}", "-d", "${DB_NAME}" ]
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -q -U ${DB_USER} -d ${DB_NAME}'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: always
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "9798:8000"
+    env_file:
+      - .env
+    networks:
+      - tz
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      - static:/app/static
+  nginx:
+    image: nginx
+    build: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+      - app
+
+    networks:
+      - tz
+
+    restart: always
+
+    volumes:
+      - static:/app/staticfiles
+
+networks:
+  tz:
+
+
+volumes:
+  static:
